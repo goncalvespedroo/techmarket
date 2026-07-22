@@ -1,98 +1,249 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🛒 Techmart API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+> Teste Técnico Backend para a **Nex**
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Uma API RESTful escalável e resiliente para gerenciamento de estoque, autenticação de usuários/vendedores e processamento **atômico de pedidos**.
 
-## Description
+O principal objetivo desta solução é garantir a **integridade dos dados em cenários de concorrência**, evitando inconsistências durante o checkout através de transações ACID do Prisma.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+---
 
-## Project setup
+## 🚀 Tecnologias
 
-```bash
-$ npm install
+| Tecnologia | Finalidade |
+|------------|------------|
+| **Node.js + NestJS** | Framework Backend |
+| **TypeScript** | Tipagem estática |
+| **Prisma ORM** | ORM e transações |
+| **PostgreSQL (Neon)** | Banco de dados relacional |
+| **JWT** | Autenticação |
+| **Bcrypt** | Hash de senhas |
+
+---
+
+# 🏛️ Arquitetura
+
+A aplicação segue a arquitetura padrão do NestJS:
+
+```
+src/
+├── auth/
+├── users/
+├── products/
+├── orders/
+├── prisma/
+├── common/
+└── main.ts
 ```
 
-## Compile and run the project
+Cada módulo é responsável por seu domínio, contendo:
 
-```bash
-# development
-$ npm run start
+- Controllers
+- Services
+- DTOs
+- Guards
+- Entities
 
-# watch mode
-$ npm run start:dev
+Essa separação facilita manutenção, testes e escalabilidade.
 
-# production mode
-$ npm run start:prod
+---
+
+# 🔐 Autenticação
+
+A autenticação utiliza:
+
+- JWT
+- Bcrypt
+- Auth Guards do NestJS
+
+Fluxo:
+
+```
+Register
+      ↓
+ Hash da senha
+      ↓
+ Login
+      ↓
+ JWT
+      ↓
+ Rotas protegidas
 ```
 
-## Run tests
+---
 
-```bash
-# unit tests
-$ npm run test
+# 📦 Regra de Negócio Principal
 
-# e2e tests
-$ npm run test:e2e
+## Checkout Atômico
 
-# test coverage
-$ npm run test:cov
+Todo processamento de pedidos ocorre dentro de uma transação do Prisma.
+
+```ts
+await this.prisma.$transaction(async (tx) => {
+    // valida estoque
+    // atualiza produtos
+    // cria pedido
+    // cria itens
+});
 ```
 
-## Deployment
+Fluxo da transação:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+1. Validação do estoque
+2. Cálculo dos subtotais
+3. Atualização do estoque
+4. Atualização do status do produto
+5. Criação do pedido
+6. Criação dos itens
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## Rollback Automático
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+Caso qualquer etapa falhe:
+
+- estoque insuficiente;
+- erro de conexão;
+- erro inesperado.
+
+Toda a transação é revertida automaticamente.
+
+Isso impede:
+
+- venda sem estoque;
+- pedidos órfãos;
+- inconsistência entre produtos e pedidos.
+
+---
+
+# 🧪 Testes
+
+Foi desenvolvido um script em **Fish Shell** para validar todo o fluxo da aplicação.
+
+Fluxo testado:
+
+```
+Registro
+      ↓
+Login
+      ↓
+Criação de Produto
+      ↓
+Checkout
+      ↓
+Validação do Estoque
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Execução:
 
-## Resources
+```bash
+chmod +x test_flow.fish
+./test_flow.fish
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+---
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+# 🚀 Executando o Projeto
 
-## Support
+## Clone
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+git clone https://github.com/seu-usuario/techmarket.git
+```
 
-## Stay in touch
+```bash
+cd techmarket
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+---
 
-## License
+## Variáveis de Ambiente
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Crie um arquivo `.env`
+
+```env
+DATABASE_URL=
+
+JWT_SECRET=
+
+JWT_EXPIRES_IN=
+```
+
+---
+
+## Instale as dependências
+
+```bash
+npm install
+```
+
+---
+
+## Gere o Prisma Client
+
+```bash
+npx prisma generate
+```
+
+---
+
+## Execute as migrations
+
+```bash
+npx prisma migrate deploy
+```
+
+---
+
+## Inicie a aplicação
+
+```bash
+npm run start:dev
+```
+
+---
+
+# 📌 Diferenciais da Implementação
+
+- ✅ Arquitetura modular com NestJS
+- ✅ ORM fortemente tipado
+- ✅ PostgreSQL Serverless (Neon)
+- ✅ Autenticação JWT
+- ✅ Senhas protegidas com Bcrypt
+- ✅ Processamento de pedidos atômico
+- ✅ Rollback automático
+- ✅ Script E2E via terminal
+
+---
+
+# 📈 Fluxo do Pedido
+
+```text
+Cliente
+    │
+    ▼
+POST /orders
+    │
+    ▼
+Validação do Estoque
+    │
+    ▼
+Prisma Transaction
+    │
+    ├── Atualiza estoque
+    ├── Atualiza produto
+    ├── Cria pedido
+    └── Cria OrderItems
+    │
+    ▼
+Commit
+    │
+    ▼
+Resposta 201
+```
+
+---
+
+# 👨‍💻 Autor
+
+**Pedro Gonçalves**
+
+Backend Engineer • Node.js • NestJS • PostgreSQL • Prisma
