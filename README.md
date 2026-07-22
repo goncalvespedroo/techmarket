@@ -1,4 +1,4 @@
-# 🛒 Techmart API
+#  Techmart API
 
 > Teste Técnico Backend para a **Nex**
 
@@ -8,7 +8,7 @@ O principal objetivo desta solução é garantir a **integridade dos dados em ce
 
 ---
 
-## 🚀 Tecnologias
+##  Tecnologias
 
 | Tecnologia | Finalidade |
 |------------|------------|
@@ -21,7 +21,7 @@ O principal objetivo desta solução é garantir a **integridade dos dados em ce
 
 ---
 
-# 🏛️ Arquitetura
+#  Arquitetura
 
 A aplicação segue a arquitetura padrão do NestJS:
 
@@ -48,7 +48,7 @@ Essa separação facilita manutenção, testes e escalabilidade.
 
 ---
 
-# 🔐 Autenticação
+#  Autenticação
 
 A autenticação utiliza:
 
@@ -72,7 +72,7 @@ Register
 
 ---
 
-# 📦 Regra de Negócio Principal
+#  Regra de Negócio Principal
 
 ## Checkout Atômico
 
@@ -141,7 +141,7 @@ chmod +x test_flow.fish
 
 ---
 
-# 🚀 Executando o Projeto
+#  Executando o Projeto
 
 ## Clone
 
@@ -201,7 +201,7 @@ npm run start:dev
 
 ---
 
-# 📌 Diferenciais da Implementação
+#  Diferenciais da Implementação
 
 - ✅ Arquitetura modular com NestJS
 - ✅ ORM fortemente tipado
@@ -214,7 +214,7 @@ npm run start:dev
 
 ---
 
-# 📈 Fluxo do Pedido
+#  Fluxo do Pedido
 
 ```text
 Cliente
@@ -242,7 +242,7 @@ Resposta 201
 
 ---
 
-# 👨‍💻 Autor
+#  Autor
 
 **Pedro Gonçalves**
 
