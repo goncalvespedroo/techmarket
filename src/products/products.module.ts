@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
+import { ProductsService } from './products.service';
+import { ProductsController } from './products.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { JwtModule } from '@nestjs/jwt';
 
@@ -8,13 +8,11 @@ import { JwtModule } from '@nestjs/jwt';
   imports: [
     PrismaModule,
     JwtModule.register({
-      global: true, 
       secret: process.env.JWT_SECRET || 'secretKey',
       signOptions: { expiresIn: '1d' },
     }),
   ],
-  controllers: [AuthController],
-  providers: [AuthService],
-  exports: [AuthService, JwtModule],
+  controllers: [ProductsController],
+  providers: [ProductsService],
 })
-export class AuthModule {}
+export class ProductsModule {}
